@@ -44,7 +44,7 @@ RUN echo "TERRAFORM_VERSION: ${TERRAFORM_VERSION}" \
     && chmod +x /opt/bin/terraform \
     && /opt/bin/terraform version
 
-COPY entrypoint entrypoint_user /opt/bin/
+COPY oci/entrypoint oci/entrypoint_user /opt/bin/
 
 
 #
@@ -109,7 +109,7 @@ FROM builder as kind-builder
 
 ARG DOCKER_CLI_VERSION=19.03.8
 
-RUN mkdir -p /opt/bin
+RUN mkdir -p /opt/bin   
 
 # kind requires docker client
 RUN echo "DOCKER_CLI_VERSION: ${DOCKER_CLI_VERSION}" \
@@ -117,6 +117,28 @@ RUN echo "DOCKER_CLI_VERSION: ${DOCKER_CLI_VERSION}" \
     && tar zxvf docker-${DOCKER_CLI_VERSION}.tgz -C . docker/docker \
     && mv docker/docker /opt/bin/docker \
     && /opt/bin/docker --help
+
+
+#
+#
+# Vendor terraform providers and modules
+FROM builder as terraform-cache 
+
+COPY --from=common-builder /opt/bin /opt/bin
+ENV PATH=/opt/bin:$PATH
+
+COPY quickstart/_dist _dist
+
+ENV TF_PLUGIN_CACHE_DIR=/opt/.terraform/plugin-cache
+RUN mkdir -p /opt/.terraform/plugin-cache
+
+RUN set -e &&\
+    for name in `ls _dist/`; do \
+    if [ -d /_dist/$name ]; then \
+    cd /_dist/$name &&\
+    terraform init; \
+    fi; \
+    done
 
 
 #
@@ -155,6 +177,10 @@ FROM final-base AS eks
 COPY --from=aws-builder /opt/aws /opt/aws
 ENV PATH=$PATH:/opt/aws/bin
 
+# Terraform cache
+COPY --from=terraform-cache /_dist/kubestack-starter-eks/.terraform /infra/.terraform
+VOLUME /infra/.terraform
+
 
 #
 #
@@ -165,6 +191,9 @@ FROM final-base AS gke
 COPY --from=gcp-builder /opt/google /opt/google
 ENV PATH=$PATH:/opt/google/bin
 
+# Terraform cache
+COPY --from=terraform-cache /_dist/kubestack-starter-gke/.terraform /infra/.terraform
+VOLUME /infra/.terraform
 
 #
 #
@@ -175,6 +204,9 @@ FROM final-base AS aks
 COPY --from=azure-builder /opt/azure /opt/azure
 ENV PATH=$PATH:/opt/azure/bin
 
+# Terraform cache
+COPY --from=terraform-cache /_dist/kubestack-starter-aks/.terraform /infra/.terraform
+VOLUME /infra/.terraform
 
 #
 #
@@ -184,6 +216,9 @@ FROM final-base AS kind
 # KinD provider
 COPY --from=kind-builder /opt/bin /opt/bin
 
+# Terraform cache
+COPY --from=terraform-cache /_dist/kubestack-starter-kind/.terraform /infra/.terraform
+VOLUME /infra/.terraform
 
 #
 #
@@ -201,3 +236,7 @@ ENV PATH=$PATH:/opt/google/bin
 # Azure
 COPY --from=azure-builder /opt/azure /opt/azure
 ENV PATH=$PATH:/opt/azure/bin
+
+# Terraform cache
+COPY --from=terraform-cache /_dist/kubestack-starter-multi-cloud/.terraform /infra/.terraform
+VOLUME /infra/.terraform
