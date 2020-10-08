@@ -6,3 +6,9 @@ dist:
 
 build: dist
 	docker build --file oci/Dockerfile --progress plain -t kubestack/framework:local-`git rev-parse --verify HEAD^{commit}` . 
+
+test:
+	cloud-build-local --substitutions=_KBST_AUTH_AWS=${KBST_AUTH_AWS},_KBST_AUTH_GCLOUD=${KBST_AUTH_GCLOUD},_KBST_AUTH_AZ=${KBST_AUTH_AZ} --dryrun=false --config cloudbuild-test.yaml .
+
+test-cleanup:
+	cloud-build-local --substitutions=_KBST_AUTH_AWS=${KBST_AUTH_AWS},_KBST_AUTH_GCLOUD=${KBST_AUTH_GCLOUD},_KBST_AUTH_AZ=${KBST_AUTH_AZ} --dryrun=false --config cloudbuild-cleanup.yaml .
