@@ -20,12 +20,12 @@ if test -S "/var/run/docker.sock"; then
 fi
 
 # user permissions on vendored Terraform providers and modules
-if test -d "/infra/.terraform"; then
-    env | grep XDG
-    ls -al /infra/.terraform/
-    chown $uid:$gid -R /infra/.terraform
-    ls -al /infra/.terraform/
-fi
+#if test -d "/infra/.terraform"; then
+#    env | grep XDG
+#    ls -al /infra/.terraform/
+#    chown $uid:$gid -R /infra/.terraform
+#    ls -al /infra/.terraform/
+#fi
 
 # stop running as root to preserve volume mount file ownership
 exec runuser -u kbst -- entrypoint_user "$@"

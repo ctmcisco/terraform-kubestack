@@ -178,8 +178,7 @@ COPY --from=aws-builder /opt/aws /opt/aws
 ENV PATH=$PATH:/opt/aws/bin
 
 # Terraform cache
-COPY --from=terraform-cache /_dist/kubestack-starter-eks/.terraform /infra/.terraform
-VOLUME /infra/.terraform
+COPY --from=terraform-cache /_dist/kubestack-starter-eks/.terraform /usr/local/share/terraform
 
 
 #
@@ -192,8 +191,7 @@ COPY --from=gcp-builder /opt/google /opt/google
 ENV PATH=$PATH:/opt/google/bin
 
 # Terraform cache
-COPY --from=terraform-cache /_dist/kubestack-starter-gke/.terraform /infra/.terraform
-VOLUME /infra/.terraform
+COPY --from=terraform-cache /_dist/kubestack-starter-gke/.terraform /usr/local/share/terraform
 
 #
 #
@@ -205,8 +203,7 @@ COPY --from=azure-builder /opt/azure /opt/azure
 ENV PATH=$PATH:/opt/azure/bin
 
 # Terraform cache
-COPY --from=terraform-cache /_dist/kubestack-starter-aks/.terraform /infra/.terraform
-VOLUME /infra/.terraform
+COPY --from=terraform-cache /_dist/kubestack-starter-aks/.terraform /usr/local/share/terraform
 
 #
 #
@@ -217,8 +214,7 @@ FROM final-base AS kind
 COPY --from=kind-builder /opt/bin /opt/bin
 
 # Terraform cache
-COPY --from=terraform-cache /_dist/kubestack-starter-kind/.terraform /infra/.terraform
-VOLUME /infra/.terraform
+COPY --from=terraform-cache /_dist/kubestack-starter-kind/.terraform /usr/local/share/terraform
 
 #
 #
@@ -238,5 +234,4 @@ COPY --from=azure-builder /opt/azure /opt/azure
 ENV PATH=$PATH:/opt/azure/bin
 
 # Terraform cache
-COPY --from=terraform-cache /_dist/kubestack-starter-multi-cloud/.terraform /infra/.terraform
-VOLUME /infra/.terraform
+COPY --from=terraform-cache /_dist/kubestack-starter-multi-cloud/.terraform /usr/local/share/terraform
